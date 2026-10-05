@@ -4,14 +4,15 @@ My software onboarding labs for TMU Velocity, Toronto Metropolitan University's 
 
 Built by [Marcantonio Povolo](https://marcantoniopovolo.com), a Computer Engineering student at TMU.
 
-## Labs
+## What I did
 
-| Lab | What it covers | Status |
-|---|---|---|
-| [Lab 1](lab1/) | Setting up ROS 2 on Ubuntu, resolving ROS distribution and package conflicts along the way | Complete |
-| [Lab 2](lab2/) | The RoboRacer simulator in Docker, and an emergency-braking safety node | Complete |
+- Completed software onboarding Labs 1 and 2 in ROS 2 on Ubuntu, resolving ROS distribution and package conflicts along the way.
+- Set up the RoboRacer simulator in Docker and wrote an emergency-braking safety node with AI assistance (ChatGPT), then tested it in simulation.
 
-The safety node was written with AI assistance (ChatGPT) and tested in the RoboRacer simulator.
+| Lab | Folder |
+|---|---|
+| Lab 1 | [lab1/](lab1/) |
+| Lab 2 | [lab2/](lab2/) |
 
 ## Layout
 
