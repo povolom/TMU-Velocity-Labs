@@ -9,10 +9,12 @@ Built by [Marcantonio Povolo](https://marcantoniopovolo.com), a Computer Enginee
 - Completed software onboarding Labs 1 and 2 in ROS 2 on Ubuntu, resolving ROS distribution and package conflicts along the way.
 - Set up the RoboRacer simulator in Docker and wrote an emergency-braking safety node with AI assistance (ChatGPT), then tested it in simulation.
 
-| Lab | Folder |
-|---|---|
-| Lab 1 | [lab1/](lab1/) |
-| Lab 2 | [lab2/](lab2/) |
+These are Labs 1 and 2 of the [RoboRacer course](https://f1tenth-coursekit.readthedocs.io/en/latest/) (formerly F1TENTH), which the team uses for software onboarding:
+
+| Lab | What it is | Folder |
+|---|---|---|
+| Lab 1: Introduction to ROS 2 | ROS 2 basics: workspaces, packages and nodes that publish and subscribe to messages | [lab1/](lab1/) |
+| Lab 2: Automatic Emergency Braking | A safety node that stops the car before a collision, using Time to Collision calculated from the LaserScan data in the RoboRacer simulator | [lab2/](lab2/) |
 
 ## Layout
 
