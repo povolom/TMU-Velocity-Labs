@@ -1,0 +1,17 @@
+# ROS 2 / colcon output (recreated by colcon build)
+build/
+install/
+log/
+# Python
+__pycache__/
+*.py[cod]
+# Recordings, bags and editor/OS files
+*.mp4
+*.mov
+*.db3
+*.bag
+rosbag2_*/
+.vscode/
+.idea/
+.DS_Store
+CLAUDE.md
