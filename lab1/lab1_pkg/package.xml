@@ -3,9 +3,9 @@
 <package format="3">
   <name>lab1_pkg</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="marcantonio@todo.todo">marcantonio</maintainer>
-  <license>TODO: License declaration</license>
+  <description>RoboRacer Lab 1: a talker node that publishes AckermannDriveStamped messages on /drive and a relay node that republishes them on /drive_relay.</description>
+  <maintainer email="povolo.ma@gmail.com">Marcantonio Povolo</maintainer>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

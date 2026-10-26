@@ -23,3 +23,18 @@ These are Labs 1 and 2 of the [RoboRacer course](https://f1tenth-coursekit.readt
 | `lab1/`, `lab2/` | One folder per lab: the ROS 2 package source and a short note on what I did |
 
 ROS 2's generated folders (`build/`, `install/`, `log/`) aren't committed; `colcon build` recreates them.
+
+## Build and run
+
+On Ubuntu 22.04 with ROS 2 Humble, link both packages into a colcon workspace and build:
+
+```bash
+mkdir -p ~/velocity_ws/src
+ln -s ~/TMU-Velocity-Labs/lab1/lab1_pkg ~/TMU-Velocity-Labs/lab2/safety_node ~/velocity_ws/src/
+cd ~/velocity_ws && colcon build --symlink-install && source install/setup.bash
+```
+
+```bash
+ros2 launch lab1_pkg lab1_launch.py        # Lab 1: talker + relay
+ros2 run safety_node safety_node           # Lab 2: run alongside the RoboRacer simulator
+```

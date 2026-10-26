@@ -22,7 +22,7 @@ setup(
     zip_safe=True,
 
     maintainer='Marcantonio Povolo',
-    maintainer_email='marcantonio@example.com',
+    maintainer_email='povolo.ma@gmail.com',
 
     description='Automatic emergency braking using instantaneous time to collision.',
 
