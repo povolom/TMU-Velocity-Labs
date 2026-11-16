@@ -7,6 +7,7 @@ __pycache__/
 *.py[cod]
 # Recordings, bags and editor/OS files
 *.mp4
+!lab*/media/*.mp4
 *.mov
 *.db3
 *.bag
