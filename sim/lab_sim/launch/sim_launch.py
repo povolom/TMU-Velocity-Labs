@@ -67,8 +67,10 @@ def _nodes(context):
         package='rviz2',
         executable='rviz2',
         name='rviz',
-        arguments=['-d', os.path.join(gym_share, 'launch', 'gym_bridge.rviz')],
+        arguments=['-d', os.path.join(get_package_share_directory('lab_sim'), 'rviz', 'lab_sim.rviz')],
         parameters=[{'use_sim_time': True}],
+        # Software OpenGL: the setup verified to draw the map and car on WSL.
+        additional_env={'LIBGL_ALWAYS_SOFTWARE': '1'},
         condition=IfCondition(LaunchConfiguration('rviz')),
     )
     clock = Node(package='lab_sim', executable='steady_clock', name='steady_clock')
