@@ -15,6 +15,8 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 # Slower than the defaults: the gaps between obstacles are 0.45 to 0.7 m for a 0.31 m car.
+# Tested at these speeds; at 2.0 m/s or more the car takes the wrong line at the L-shaped
+# pocket and crashes there.
 PARAMETERS = {
     'fast_speed': 1.5,
     'medium_speed': 1.2,

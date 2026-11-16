@@ -20,6 +20,16 @@ A doorway can look like a corner to two beams. The node tells them apart the way
 
 All values are ROS parameters with these defaults (`kp`, `ki`, `kd`, `desired_distance`, `lookahead`, `theta_deg`, `side`).
 
+### Changing the speed
+
+The three speeds are the `straight_speed`, `medium_speed` and `slow_speed` parameters at the top of `wall_follow_node.py`. Any value is safe to try: on top of the speed table, the node:
+
+- limits speed in a turn to what the tyres can hold: `sqrt(max_lateral_accel · wheelbase / tan(steering))`,
+- brakes for a wall ahead early enough to be down to 1.5 m/s 1.5 m before it,
+- looks further ahead (0.6 s of travel) and softens the PID gains above the 1.5 m/s they were tuned at.
+
+Tested in the simulator: clean laps with `straight_speed` at 1.5, 4.8 and 10 (the car tops out around 4 m/s on Levine).
+
 ## Run it
 
 In VS Code (connected to WSL), **Terminal → Run Task… → Lab 3: wall follow (simulator)**, or:

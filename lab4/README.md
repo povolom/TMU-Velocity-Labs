@@ -33,6 +33,10 @@ Changes from the textbook version, each one fixing a crash or wrong turn found i
 | Ignore anything closer than 2 m as free space | Nearby walls at a corner formed a "gap" pointing into the corner. |
 | Don't steer toward a side with something right beside the car (0.3 m beside the front, 0.17 m beside the rear) | The car cut the inside of corners and clipped them. |
 
+### Changing the speed
+
+The speeds are the `fast_speed`, `medium_speed` and `slow_speed` parameters: defaults at the top of `reactive_node.py`, and per-map overrides in the launch files below. On top of them the node limits speed in a turn to what the tyres can hold, and brakes for anything ahead early enough to be down to 1.5 m/s 1.0 m before it. On levine_blocked that keeps any setting safe: tested clean at the defaults and at 10 / 8 / 6 m/s (laps drop to about 18 s). On levine_obs, keep to the launch file's speeds: at 2.0 m/s or more the car takes the wrong line at the L-shaped pocket.
+
 Each map has its own launch file, with its own parameters:
 
 | Map | Launch file | Speeds (fast / medium / slow) |

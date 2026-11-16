@@ -32,6 +32,12 @@ class ReactiveFollowGap(Node):
         self.declare_parameter('fast_speed', 2.0)
         self.declare_parameter('medium_speed', 1.5)
         self.declare_parameter('slow_speed', 1.0)
+        # Safety limits, so any speeds above stay drivable.
+        self.declare_parameter('wheelbase', 0.33)
+        self.declare_parameter('max_lateral_accel', 4.0) # m/s^2 of grip in a turn
+        self.declare_parameter('max_decel', 3.0)         # m/s^2 of braking to plan with
+        self.declare_parameter('corner_speed', 1.5)      # speed to be down to at a wall ahead
+        self.declare_parameter('corner_margin', 1.0)     # ...this far before reaching it
 
         self.scan_subscription = self.create_subscription(
             LaserScan,
@@ -175,7 +181,25 @@ class ReactiveFollowGap(Node):
         if end < start or (ahead.size and ahead.min() < self.param('slow_down_distance')):
             speed = min(speed, self.param('slow_speed'))
 
+        speed = min(speed, self.speed_limit(steering, ahead.min() if ahead.size else np.inf))
         self.publish(steering, speed, scan_msg)
+
+    def speed_limit(self, steering, ahead):
+        """Fastest safe speed right now, whatever the speed settings ask for.
+
+        Turning: a turn of radius r holds at most sqrt(max_lateral_accel * r) before the
+        car slides, and r = wheelbase / tan(steering).
+        Braking: with something `ahead` metres in front, the car must still be able to slow
+        to corner_speed by corner_margin before it.
+        """
+        limit = np.inf
+        if abs(steering) > 1e-3:
+            radius = self.param('wheelbase') / np.tan(abs(steering))
+            limit = np.sqrt(self.param('max_lateral_accel') * radius)
+
+        room = max(0.0, ahead - self.param('corner_margin'))
+        return min(limit, np.sqrt(self.param('corner_speed') ** 2
+                                  + 2.0 * self.param('max_decel') * room))
 
     def side_blocked(self, scan_msg):
         """Whether something sits right beside the car's body on the left / right.

@@ -46,6 +46,7 @@ def steering(node, scan):
     node.prev_time = None
     node.integral = 0.0
     node.prev_error = 0.0
+    node.speed = 0.0
     node.scan_callback(scan)
     return sent[-1].drive.steering_angle
 
@@ -70,6 +71,26 @@ def test_centred_and_straight_drives_straight_and_fast(node):
     sent = []
     node.drive_publisher.publish = sent.append
     node.prev_time = None
+    node.speed = 0.0
     node.scan_callback(corridor_scan(left=1.0, right=1.0))
     assert abs(sent[-1].drive.steering_angle) < math.radians(2.0)
-    assert sent[-1].drive.speed == 1.5
+    assert sent[-1].drive.speed == node.get_parameter('straight_speed').value
+
+
+def test_wall_ahead_caps_any_straight_speed(node):
+    # Corridor ending in a wall 3 m ahead: even asked for 10 m/s, it must be able to slow
+    # for the corner.
+    node.set_parameters([rclpy.parameter.Parameter('straight_speed', value=10.0)])
+    try:
+        scan = corridor_scan(left=1.0, right=1.0)
+        centre = round((0.0 - scan.angle_min) / scan.angle_increment)
+        scan.ranges = [3.0 if abs(i - centre) < 60 else r for i, r in enumerate(scan.ranges)]
+        sent = []
+        node.drive_publisher.publish = sent.append
+        node.prev_time = None
+        node.speed = 0.0
+        node.scan_callback(scan)
+        # sqrt(corner_speed^2 + 2 * max_decel * (3.0 - corner_margin)) = sqrt(1.5^2 + 2*3*1.5)
+        assert sent[-1].drive.speed == pytest.approx(math.sqrt(1.5 ** 2 + 2 * 3.0 * 1.5))
+    finally:
+        node.set_parameters([rclpy.parameter.Parameter('straight_speed', value=1.5)])
