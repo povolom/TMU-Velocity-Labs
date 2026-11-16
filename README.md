@@ -19,7 +19,7 @@ These are Labs 1 to 4 of the [RoboRacer course](https://f1tenth-coursekit.readth
 | Lab 3: Wall Following | A PID controller that holds a set distance from the inner wall to drive laps | [lab3/](lab3/) |
 | Lab 4: Follow the Gap | A reactive planner that drives toward the free space it fits through, on an empty track and one full of obstacles | [lab4/](lab4/) |
 
-![Lab 4 follow the gap, 3 laps of levine_blocked](lab4/media/gap_follow_levine_blocked.gif)
+[![Lab 4 follow the gap, 3 laps of levine_blocked (click to play the video)](lab4/media/gap_follow_levine_blocked.png)](lab4/media/gap_follow_levine_blocked.mp4)
 
 ## Layout
 

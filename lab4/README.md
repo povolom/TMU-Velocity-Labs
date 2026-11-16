@@ -6,13 +6,13 @@
 
 **levine_blocked**: 3 counter-clockwise laps in a row without touching a wall (31.5, 32.5 and 32.6 s, top speed 2.0 m/s).
 
-![Lab 4 follow the gap, 3 laps of levine_blocked](media/gap_follow_levine_blocked.gif)
+[![Lab 4 follow the gap, 3 laps of levine_blocked (click to play the video)](media/gap_follow_levine_blocked.png)](media/gap_follow_levine_blocked.mp4)
 
 **levine_obs**: starting on the east hallway heading north, the car clears 3 of the 4 corners (through the triangles, past the L-shaped dead-end pocket and the first box) and then clips a box in the slalom on the south hallway, where the gap between two boxes is about 0.45 m for a 0.31 m wide car. A full clean lap of this map is still to do.
 
-![Lab 4 follow the gap on levine_obs](media/gap_follow_levine_obs.gif)
+[![Lab 4 follow the gap on levine_obs (click to play the video)](media/gap_follow_levine_obs.png)](media/gap_follow_levine_obs.mp4)
 
-*Both are replays of simulator runs, drawn from the car's recorded positions (3x and 2x speed).*
+*Click a picture to play its video. Both are replays of simulator runs, drawn from the car's recorded positions with its laser scan (3x and 2x speed).*
 
 ## How it works
 

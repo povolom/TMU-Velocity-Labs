@@ -2,9 +2,9 @@
 
 [RoboRacer Lab 3](https://github.com/f1tenth/f1tenth_lab3_template): drive laps by holding a set distance from a wall, using a PID controller on the LiDAR data.
 
-![Lab 3 wall follower driving a lap of levine_blocked](media/wall_follow_levine_blocked.gif)
+[![Lab 3 wall follower driving a lap of levine_blocked (click to play the video)](media/wall_follow_levine_blocked.png)](media/wall_follow_levine_blocked.mp4)
 
-*Replay of a simulator run, drawn from the car's recorded positions (2x speed). One counter-clockwise lap of `levine_blocked` in 43.6 s without touching a wall.*
+*Click the picture to play the video: a replay of a simulator run, drawn from the car's recorded positions with its laser scan (2x speed). One counter-clockwise lap of `levine_blocked` in 43.5 s without touching a wall.*
 
 ## How it works
 
