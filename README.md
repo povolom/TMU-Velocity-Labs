@@ -44,9 +44,11 @@ cd ~/velocity_ws && colcon build --symlink-install && source install/setup.bash
 ```bash
 ros2 launch lab1_pkg lab1_launch.py                # Lab 1: talker + relay
 ros2 run safety_node safety_node                   # Lab 2: run alongside the RoboRacer simulator
-ros2 launch wall_follow wall_follow_launch.py      # Lab 3: simulator + RViz + wall follower
-ros2 launch gap_follow levine_blocked_launch.py    # Lab 4: simulator + RViz + follow the gap
-ros2 launch gap_follow levine_obs_launch.py        # Lab 4 on the obstacle map
+ros2 launch wall_follow wall_follow_launch.py sim:=true    # Lab 3: simulator + RViz + wall follower
+ros2 launch gap_follow levine_blocked_launch.py sim:=true  # Lab 4: simulator + RViz + follow the gap
+ros2 launch gap_follow levine_obs_launch.py sim:=true      # Lab 4 on the obstacle map
 ```
+
+Leave out `sim:=true` to start only the lab's node (on the car, or with a simulator that's already running).
 
 The simulator runs on sim time from `lab_sim`'s steady clock, because WSL's system clock can jump by minutes and freeze ROS timers.

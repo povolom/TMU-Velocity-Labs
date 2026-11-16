@@ -25,8 +25,10 @@ All values are ROS parameters with these defaults (`kp`, `ki`, `kd`, `desired_di
 In VS Code (connected to WSL), **Terminal → Run Task… → Lab 3: wall follow (simulator)**, or:
 
 ```bash
-ros2 launch wall_follow wall_follow_launch.py            # simulator on levine_blocked + RViz + the node
-ros2 launch wall_follow wall_follow_launch.py sim:=false # just the node, e.g. on the car
+ros2 launch wall_follow wall_follow_launch.py sim:=true  # simulator on levine_blocked + RViz + the node
+ros2 run wall_follow wall_follow_node                    # just the node, e.g. on the car
 ```
+
+The tests in [wall_follow/test/](wall_follow/test/) check the node like the lab's grader does, on synthetic corridor scans: too close to either wall, or turned toward either wall, it must steer away. Run them with `python3 -m pytest lab3/wall_follow/test`.
 
 Written with AI assistance (Claude Code) and tested in the RoboRacer simulator.

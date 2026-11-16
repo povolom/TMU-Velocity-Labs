@@ -1,7 +1,7 @@
 """Lab 3: wall follower, optionally with the simulator on levine_blocked.
 
-    ros2 launch wall_follow wall_follow_launch.py            # node + simulator + RViz
-    ros2 launch wall_follow wall_follow_launch.py sim:=false # node only
+    ros2 launch wall_follow wall_follow_launch.py sim:=true  # node + simulator + RViz
+    ros2 launch wall_follow wall_follow_launch.py            # node only (car, or a simulator already running)
 """
 
 import os
@@ -36,7 +36,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        DeclareLaunchArgument('sim', default_value='true'),
+        DeclareLaunchArgument('sim', default_value='false'),
         DeclareLaunchArgument('rviz', default_value='true'),
         sim,
         wall_follow,

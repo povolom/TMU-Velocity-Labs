@@ -1,7 +1,7 @@
 """Lab 4 on levine_obs: Levine with 13 obstacles, counter-clockwise from the east hallway.
 
-    ros2 launch gap_follow levine_obs_launch.py            # node + simulator + RViz
-    ros2 launch gap_follow levine_obs_launch.py sim:=false # node only
+    ros2 launch gap_follow levine_obs_launch.py sim:=true  # node + simulator + RViz
+    ros2 launch gap_follow levine_obs_launch.py            # node only, as the lab's grader runs it
 """
 
 import os
@@ -43,7 +43,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        DeclareLaunchArgument('sim', default_value='true'),
+        DeclareLaunchArgument('sim', default_value='false'),
         DeclareLaunchArgument('rviz', default_value='true'),
         sim,
         reactive_node,

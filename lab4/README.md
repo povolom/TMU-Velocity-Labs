@@ -45,9 +45,13 @@ Each map has its own launch file, with its own parameters:
 In VS Code (connected to WSL), **Terminal → Run Task…** and pick a Lab 4 task, or:
 
 ```bash
-ros2 launch gap_follow levine_blocked_launch.py            # simulator + RViz + the node
-ros2 launch gap_follow levine_obs_launch.py
-ros2 launch gap_follow levine_obs_launch.py sim:=false     # just the node, e.g. on the car
+ros2 launch gap_follow levine_blocked_launch.py sim:=true  # simulator + RViz + the node
+ros2 launch gap_follow levine_obs_launch.py sim:=true
+ros2 launch gap_follow levine_obs_launch.py                # just the node, as the lab's grader runs it
 ```
+
+Without `sim:=true` the launch files start only the node with that map's parameters, which is what the lab's grader expects (it runs its own simulator).
+
+The tests in [gap_follow/test/](gap_follow/test/) check the node like the grader does, on synthetic scans, each also mirrored: a pillar ahead (steer toward the wider side), a corridor with the car near one wall (steer toward the open side) and a dead end with the exit to one side (aim into the exit). Run them with `python3 -m pytest lab4/gap_follow/test`.
 
 Written with AI assistance (Claude Code) and tested in the RoboRacer simulator.
