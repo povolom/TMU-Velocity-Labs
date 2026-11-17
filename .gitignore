@@ -5,6 +5,7 @@ log/
 # Python
 __pycache__/
 *.py[cod]
+.pytest_cache/
 # Recordings, bags and editor/OS files
 *.mp4
 !lab*/media/*.mp4
@@ -12,7 +13,9 @@ __pycache__/
 *.db3
 *.bag
 rosbag2_*/
-.vscode/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/settings.json
 .idea/
 .DS_Store
 CLAUDE.md

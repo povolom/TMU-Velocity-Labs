@@ -1,0 +1,25 @@
+{
+    // The labs are built with colcon (Ctrl+Shift+B), not CMake: keep the CMake extension
+    // from configuring Lab 1 as a C++ project and from adding its own Build button.
+    "cmake.configureOnOpen": false,
+    "cmake.autoSelectActiveFolder": false,
+    "cmake.ignoreCMakeListsMissing": true,
+    "cmake.options.statusBarVisibility": "hidden",
+
+    // Let Python find ROS 2 Humble's packages (rclpy, message types) and the lab packages.
+    "python.defaultInterpreterPath": "/usr/bin/python3",
+    "python.analysis.extraPaths": [
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages",
+        "${workspaceFolder}/lab3/wall_follow",
+        "${workspaceFolder}/lab4/gap_follow",
+        "${workspaceFolder}/sim/lab_sim"
+    ],
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": ["lab3/wall_follow/test", "lab4/gap_follow/test"],
+
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true
+    }
+}

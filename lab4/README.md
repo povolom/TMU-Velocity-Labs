@@ -4,15 +4,17 @@
 
 ## Results in the simulator
 
-**levine_blocked**: 3 counter-clockwise laps in a row without touching a wall (31.5, 32.5 and 32.6 s, top speed 2.0 m/s).
+**levine_blocked**: 3 counter-clockwise laps in a row without touching a wall at the normal 2 m/s (about 32 s a lap), and at `max_speed` 10 (about 15 s a lap).
 
-[![Lab 4 follow the gap, 3 laps of levine_blocked (click to play the video)](media/gap_follow_levine_blocked.png)](media/gap_follow_levine_blocked.mp4)
+| Normal speed (2 m/s) | Fast (`max_speed` 10) |
+|---|---|
+| [![Lab 4 at normal speed (click to play)](media/lab4_follow_the_gap_normal.png)](media/lab4_follow_the_gap_normal.mp4) | [![Lab 4 at max_speed 10 (click to play)](media/lab4_follow_the_gap_fast.png)](media/lab4_follow_the_gap_fast.mp4) |
 
 **levine_obs**: starting on the east hallway heading north, the car clears 3 of the 4 corners (through the triangles, past the L-shaped dead-end pocket and the first box) and then clips a box in the slalom on the south hallway, where the gap between two boxes is about 0.45 m for a 0.31 m wide car. A full clean lap of this map is still to do.
 
-[![Lab 4 follow the gap on levine_obs (click to play the video)](media/gap_follow_levine_obs.png)](media/gap_follow_levine_obs.mp4)
+[![Lab 4 on levine_obs (click to play)](media/lab4_follow_the_gap_obstacles.png)](media/lab4_follow_the_gap_obstacles.mp4)
 
-*Click a picture to play its video. Both are replays of simulator runs, drawn from the car's recorded positions with its laser scan (3x and 2x speed).*
+*Click a picture to play its video: screen recordings of RViz while the car drives in the RoboRacer simulator.*
 
 ## How it works
 
@@ -37,7 +39,7 @@ Changes from the textbook version, each one fixing a crash or wrong turn found i
 
 There is one setting, `max_speed` (default 2.0 m/s, set to 1.5 for levine_obs in its launch file). The car drives at full speed under 10° of steering, 75% from 10° to 20° and 50% above or when something is within 1.5 m ahead. On top of that the node limits speed in a turn to what the tyres can hold, brakes for anything ahead early enough to be down to 2 m/s 1 m before it, and above 2.5 m/s smooths the steering and keeps a wider margin from obstacle edges and walls beside it, so it doesn't cut corners.
 
-To try a speed without editing a file: `ros2 launch gap_follow levine_blocked_launch.py sim:=true max_speed:=10.0`, or the **Lab 4: follow the gap FAST** task in VS Code.
+To try a speed without editing a file: `ros2 launch gap_follow levine_blocked_launch.py sim:=true max_speed:=10.0`, or the **Lab 4 - Follow the gap (fast, 10 m/s)** task in VS Code. When the node is stopped it sends a stop command, so the car doesn't keep driving on its last command.
 
 Tested on levine_blocked, three laps each without touching a wall: `max_speed` 2 (≈32 s laps), 3 (≈22 s), 5 (≈15 s) and 10 (≈15 s). On levine_obs, keep to 1.5: faster, the car takes the wrong line at the L-shaped pocket.
 

@@ -100,7 +100,20 @@ def _nodes(context):
         condition=IfCondition(LaunchConfiguration('rviz')),
     )
     clock = Node(package='lab_sim', executable='steady_clock', name='steady_clock')
-    return [clock, bridge, map_server, lifecycle, robot_publisher, rviz]
+    crash_reset = Node(
+        package='lab_sim',
+        executable='crash_reset',
+        name='crash_reset',
+        output='screen',
+        parameters=[{
+            'use_sim_time': True,
+            'sx': float(LaunchConfiguration('sx').perform(context)),
+            'sy': float(LaunchConfiguration('sy').perform(context)),
+            'stheta': float(LaunchConfiguration('stheta').perform(context)),
+        }],
+        condition=IfCondition(LaunchConfiguration('reset_on_crash')),
+    )
+    return [clock, bridge, map_server, lifecycle, robot_publisher, rviz, crash_reset]
 
 
 def generate_launch_description():
@@ -112,5 +125,7 @@ def generate_launch_description():
         DeclareLaunchArgument('sy', default_value='0.0'),
         DeclareLaunchArgument('stheta', default_value='0.0'),
         DeclareLaunchArgument('rviz', default_value='true'),
+        DeclareLaunchArgument('reset_on_crash', default_value='true',
+                              description='Put the car back on the start line after a crash'),
         OpaqueFunction(function=_nodes),
     ])

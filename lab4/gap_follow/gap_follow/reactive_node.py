@@ -1,7 +1,10 @@
+import signal
+
 import numpy as np
 
 import rclpy
 from rclpy.node import Node
+from rclpy.signals import SignalHandlerOptions
 
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
@@ -257,15 +260,29 @@ class ReactiveFollowGap(Node):
         self.drive_publisher.publish(drive_msg)
 
 
+def _interrupt(signum, frame):
+    raise KeyboardInterrupt
+
+
 def main(args=None):
-    rclpy.init(args=args)
+    # Handle Ctrl+C and termination here instead of in rclpy, so the node can still publish
+    # a stop command on the way out. Otherwise the simulator keeps applying the last speed
+    # and steering and the car drives off on its own.
+    rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
+    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, _interrupt)
 
     node = ReactiveFollowGap()
-
-    rclpy.spin(node)
-
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        stop = AckermannDriveStamped()
+        for _ in range(3):
+            node.drive_publisher.publish(stop)
+        node.destroy_node()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':

@@ -23,6 +23,7 @@ setup(
     entry_points={
         'console_scripts': [
             'steady_clock = lab_sim.steady_clock:main',
+            'crash_reset = lab_sim.crash_reset:main',
         ],
     },
 )

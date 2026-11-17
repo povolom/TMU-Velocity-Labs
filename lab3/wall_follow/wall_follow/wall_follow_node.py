@@ -1,7 +1,9 @@
 import math
+import signal
 
 import rclpy
 from rclpy.node import Node
+from rclpy.signals import SignalHandlerOptions
 
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
@@ -15,12 +17,16 @@ CORNER_SPEED = 2.0        # m/s to be down to...
 CORNER_MARGIN = 1.0       # ...this many metres before a wall ahead
 SPEED_UP = 5.0            # m/s^2: how fast the car may gain speed
 
-# The PID gains and lookahead are tuned at 1.5 m/s. Faster than SMOOTH_ABOVE, the lookahead
-# grows, the gains shrink and steering is smoothed, so the car doesn't twitch.
+# The PID gains and lookahead are tuned at 1.5 m/s. Faster than that, the lookahead grows
+# and the gains shrink.
 TUNED_SPEED = 1.5         # m/s
-SMOOTH_ABOVE = 2.5        # m/s
 LOOKAHEAD_TIME = 0.6      # s of travel to look ahead, at least
-STEERING_BLEND = 0.35     # share of each new steering command when smoothing
+
+# Scans arrive every 4 ms, so the derivative of the error is mostly LiDAR noise unless it is
+# filtered, and the car twitches left and right. Both it and the steering are low-pass
+# filtered with these time constants.
+DERIVATIVE_TAU = 0.05     # s
+STEERING_TAU = 0.05       # s
 
 
 class WallFollow(Node):
@@ -47,6 +53,7 @@ class WallFollow(Node):
 
         self.integral = 0.0
         self.prev_error = 0.0
+        self.derivative = 0.0
         self.prev_time = None
         self.speed = 0.0
         self.steering = 0.0
@@ -118,14 +125,13 @@ class WallFollow(Node):
         dt = 0.0 if self.prev_time is None else now - self.prev_time
         if dt > 0.0:
             self.integral += error * dt
-            derivative = (error - self.prev_error) / dt
-        else:
-            derivative = 0.0
+            raw_derivative = (error - self.prev_error) / dt
+            self.derivative += dt / (DERIVATIVE_TAU + dt) * (raw_derivative - self.derivative)
 
         self.prev_error = error
         self.prev_time = now
 
-        return kp * error + ki * self.integral + kd * derivative
+        return kp * error + ki * self.integral + kd * self.derivative
 
     def choose_speed(self, scan_msg, steering, dt):
         """The lab's speed table scaled to max_speed, kept within what the car can turn and
@@ -148,9 +154,9 @@ class WallFollow(Node):
         room = max(0.0, ahead - CORNER_MARGIN)
         speed = min(speed, math.sqrt(CORNER_SPEED ** 2 + 2.0 * BRAKE_DECEL * room))
 
-        # Gain speed gradually at high speed; slowing down is never delayed.
-        if speed > max(self.speed, SMOOTH_ABOVE) and dt > 0.0:
-            speed = min(speed, max(self.speed, SMOOTH_ABOVE) + SPEED_UP * dt)
+        # Gain speed gradually; slowing down is never delayed.
+        if speed > self.speed and dt > 0.0:
+            speed = min(speed, self.speed + SPEED_UP * dt)
         return speed
 
     def scan_callback(self, scan_msg):
@@ -165,8 +171,8 @@ class WallFollow(Node):
             # Either way, don't let the jump in the readings wind up the PID.
             steering = sign * max_steering if corner else 0.0
             self.integral = 0.0
-            self.prev_error = 0.0
-            self.prev_time = now
+            self.derivative = 0.0
+            self.prev_time = None
         else:
             u = self.pid_control(error, now)
             # Too close to the left wall (positive error) means steer right (negative angle).
@@ -174,8 +180,8 @@ class WallFollow(Node):
 
         steering = max(-max_steering, min(max_steering, steering))
 
-        if self.speed > SMOOTH_ABOVE:
-            steering = STEERING_BLEND * steering + (1.0 - STEERING_BLEND) * self.steering
+        if dt > 0.0:
+            steering = self.steering + dt / (STEERING_TAU + dt) * (steering - self.steering)
         self.steering = steering
 
         self.speed = self.choose_speed(scan_msg, steering, dt)
@@ -187,15 +193,29 @@ class WallFollow(Node):
         self.drive_publisher.publish(drive_msg)
 
 
+def _interrupt(signum, frame):
+    raise KeyboardInterrupt
+
+
 def main(args=None):
-    rclpy.init(args=args)
+    # Handle Ctrl+C and termination here instead of in rclpy, so the node can still publish
+    # a stop command on the way out. Otherwise the simulator keeps applying the last speed
+    # and steering and the car drives off on its own.
+    rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
+    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, _interrupt)
 
     node = WallFollow()
-
-    rclpy.spin(node)
-
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        stop = AckermannDriveStamped()
+        for _ in range(3):
+            node.drive_publisher.publish(stop)
+        node.destroy_node()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':
