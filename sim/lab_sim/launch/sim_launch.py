@@ -17,7 +17,33 @@ from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.actions import Node
 
 
+def _other_simulator_running():
+    """Whether a gym_bridge is already running on this ROS domain.
+
+    Two simulators on one domain share topics and the map server's name, which mixes up
+    the car and leaves the new map unloaded.
+    """
+    domain = os.environ.get('ROS_DOMAIN_ID', '0')
+    for pid in filter(str.isdigit, os.listdir('/proc')):
+        try:
+            with open(f'/proc/{pid}/cmdline', 'rb') as f:
+                if b'gym_bridge' not in f.read():
+                    continue
+            with open(f'/proc/{pid}/environ', 'rb') as f:
+                env = dict(v.split(b'=', 1) for v in f.read().split(b'\0') if b'=' in v)
+        except OSError:
+            continue
+        if env.get(b'ROS_DOMAIN_ID', b'0').decode() == domain:
+            return True
+    return False
+
+
 def _nodes(context):
+    if _other_simulator_running():
+        raise RuntimeError(
+            'Another simulator is already running. Stop it first (trash-can icon on its '
+            'VS Code terminal, or Ctrl+C), then start this one again.')
+
     gym_share = get_package_share_directory('f1tenth_gym_ros')
     map_dir = os.path.expanduser(LaunchConfiguration('map_dir').perform(context))
     map_path = os.path.join(map_dir, LaunchConfiguration('map').perform(context))

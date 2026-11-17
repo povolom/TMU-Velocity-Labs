@@ -22,13 +22,16 @@ All values are ROS parameters with these defaults (`kp`, `ki`, `kd`, `desired_di
 
 ### Changing the speed
 
-The three speeds are the `straight_speed`, `medium_speed` and `slow_speed` parameters at the top of `wall_follow_node.py`. Any value is safe to try: on top of the speed table, the node:
+There is one setting, `max_speed` (default 1.5 m/s), at the top of `wall_follow_node.py`. The lab's speed table is scaled to it: full speed under 10° of steering, two thirds from 10° to 20°, one third above, which at 1.5 gives exactly the lab's 1.5 / 1.0 / 0.5 m/s. Any value is safe to try, because the node also:
 
-- limits speed in a turn to what the tyres can hold: `sqrt(max_lateral_accel · wheelbase / tan(steering))`,
-- brakes for a wall ahead early enough to be down to 1.5 m/s 1.5 m before it,
-- looks further ahead (0.6 s of travel) and softens the PID gains above the 1.5 m/s they were tuned at.
+- limits speed in a turn to what the tyres can hold: `sqrt(grip · wheelbase / tan(steering))`,
+- brakes for a wall ahead early enough to be down to 2 m/s 1 m before it,
+- above 2.5 m/s, looks further ahead, softens the PID gains and smooths the steering so it doesn't twitch,
+- turns into a corner when the wall beside it ends with a wall ahead (and drives straight past a doorway when there is open space ahead).
 
-Tested in the simulator: clean laps with `straight_speed` at 1.5, 4.8 and 10 (the car tops out around 4 m/s on Levine).
+To try a speed without editing the file: `ros2 launch wall_follow wall_follow_launch.py sim:=true max_speed:=10.0`, or the **Lab 3: wall follow FAST** task in VS Code.
+
+Tested in the simulator, two laps each without touching a wall: `max_speed` 2 (≈44 s laps), 3 (≈28 s), 4 (≈18 s), 5 (≈15 s) and 10 (≈15 s; the car tops out near 6 m/s on Levine).
 
 ## Run it
 

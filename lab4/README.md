@@ -35,14 +35,18 @@ Changes from the textbook version, each one fixing a crash or wrong turn found i
 
 ### Changing the speed
 
-The speeds are the `fast_speed`, `medium_speed` and `slow_speed` parameters: defaults at the top of `reactive_node.py`, and per-map overrides in the launch files below. On top of them the node limits speed in a turn to what the tyres can hold, and brakes for anything ahead early enough to be down to 1.5 m/s 1.0 m before it. On levine_blocked that keeps any setting safe: tested clean at the defaults and at 10 / 8 / 6 m/s (laps drop to about 18 s). On levine_obs, keep to the launch file's speeds: at 2.0 m/s or more the car takes the wrong line at the L-shaped pocket.
+There is one setting, `max_speed` (default 2.0 m/s, set to 1.5 for levine_obs in its launch file). The car drives at full speed under 10° of steering, 75% from 10° to 20° and 50% above or when something is within 1.5 m ahead. On top of that the node limits speed in a turn to what the tyres can hold, brakes for anything ahead early enough to be down to 2 m/s 1 m before it, and above 2.5 m/s smooths the steering and keeps a wider margin from obstacle edges and walls beside it, so it doesn't cut corners.
+
+To try a speed without editing a file: `ros2 launch gap_follow levine_blocked_launch.py sim:=true max_speed:=10.0`, or the **Lab 4: follow the gap FAST** task in VS Code.
+
+Tested on levine_blocked, three laps each without touching a wall: `max_speed` 2 (≈32 s laps), 3 (≈22 s), 5 (≈15 s) and 10 (≈15 s). On levine_obs, keep to 1.5: faster, the car takes the wrong line at the L-shaped pocket.
 
 Each map has its own launch file, with its own parameters:
 
-| Map | Launch file | Speeds (fast / medium / slow) |
+| Map | Launch file | `max_speed` |
 |---|---|---|
-| levine_blocked | `levine_blocked_launch.py` | 2.0 / 1.5 / 1.0 m/s (defaults) |
-| levine_obs | `levine_obs_launch.py` | 1.5 / 1.2 / 0.8 m/s |
+| levine_blocked | `levine_blocked_launch.py` | 2.0 m/s (default) |
+| levine_obs | `levine_obs_launch.py` | 1.5 m/s |
 
 ## Run it
 

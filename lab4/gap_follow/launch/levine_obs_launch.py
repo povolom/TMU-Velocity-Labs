@@ -18,9 +18,7 @@ from launch_ros.actions import Node
 # Tested at these speeds; at 2.0 m/s or more the car takes the wrong line at the L-shaped
 # pocket and crashes there.
 PARAMETERS = {
-    'fast_speed': 1.5,
-    'medium_speed': 1.2,
-    'slow_speed': 0.8,
+    'max_speed': 1.5,
 }
 
 

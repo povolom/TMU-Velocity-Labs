@@ -6,12 +6,32 @@ from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 
+# How fast the car can turn and brake (the RoboRacer car in the simulator). The speed is
+# always kept within these, so max_speed can be set to anything.
+WHEELBASE = 0.33          # m
+LATERAL_ACCEL = 7.0       # m/s^2 of grip in a turn
+BRAKE_DECEL = 5.0         # m/s^2 of braking
+CORNER_SPEED = 2.0        # m/s to be down to...
+CORNER_MARGIN = 1.0       # ...this many metres before a wall ahead
+SPEED_UP = 5.0            # m/s^2: how fast the car may gain speed
+
+# The PID gains and lookahead are tuned at 1.5 m/s. Faster than SMOOTH_ABOVE, the lookahead
+# grows, the gains shrink and steering is smoothed, so the car doesn't twitch.
+TUNED_SPEED = 1.5         # m/s
+SMOOTH_ABOVE = 2.5        # m/s
+LOOKAHEAD_TIME = 0.6      # s of travel to look ahead, at least
+STEERING_BLEND = 0.35     # share of each new steering command when smoothing
+
 
 class WallFollow(Node):
     """PID wall follower. Follows the left wall by default (counter-clockwise laps)."""
 
     def __init__(self):
         super().__init__('wall_follow_node')
+
+        # Top speed, on straights. Set it to anything: the car slows for turns and walls by
+        # itself. At 1.5 the speeds are exactly the lab's table (1.5 / 1.0 / 0.5 m/s).
+        self.declare_parameter('max_speed', 1.5)
 
         self.declare_parameter('kp', 1.0)
         self.declare_parameter('ki', 0.0)
@@ -25,25 +45,11 @@ class WallFollow(Node):
         self.declare_parameter('corner_front_distance', 6.0)
         self.declare_parameter('max_steering', 0.4189)
 
-        # Speed for each steering band (the lab's table). Change these to go faster or slower.
-        self.declare_parameter('straight_speed', 1.5)   # under 10 degrees
-        self.declare_parameter('medium_speed', 1.0)     # 10 to 20 degrees
-        self.declare_parameter('slow_speed', 0.5)       # over 20 degrees
-
-        # Safety limits, so any speed above stays drivable. The PID gains and lookahead are
-        # tuned at gain_ref_speed; faster than that, the lookahead grows and the gains shrink.
-        self.declare_parameter('gain_ref_speed', 1.5)
-        self.declare_parameter('lookahead_time', 0.6)    # look at least this many seconds ahead
-        self.declare_parameter('wheelbase', 0.33)
-        self.declare_parameter('max_lateral_accel', 4.0) # m/s^2 of grip in a turn
-        self.declare_parameter('max_decel', 3.0)         # m/s^2 of braking to plan with
-        self.declare_parameter('corner_speed', 1.5)      # speed to be down to at a wall ahead
-        self.declare_parameter('corner_margin', 1.5)     # ...this far before reaching it
-
         self.integral = 0.0
         self.prev_error = 0.0
         self.prev_time = None
         self.speed = 0.0
+        self.steering = 0.0
 
         self.scan_subscription = self.create_subscription(
             LaserScan,
@@ -80,8 +86,7 @@ class WallFollow(Node):
     def get_error(self, scan_msg):
         """Error between the desired wall distance and the predicted distance one lookahead ahead."""
         theta = math.radians(self.get_parameter('theta_deg').value)
-        lookahead = max(self.get_parameter('lookahead').value,
-                        self.get_parameter('lookahead_time').value * self.speed)
+        lookahead = max(self.get_parameter('lookahead').value, LOOKAHEAD_TIME * self.speed)
         desired = self.get_parameter('desired_distance').value
         sign = 1.0 if self.get_parameter('side').value == 'left' else -1.0
 
@@ -93,18 +98,19 @@ class WallFollow(Node):
         dist_now = b * math.cos(alpha)
         dist_ahead = dist_now + lookahead * math.sin(alpha)
 
+        # When the wall beside the car ends, it is either a doorway (open space ahead) or a
+        # corner (a wall ahead). The formula above can't tell and can even steer away from the
+        # wall at a corner, so both cases are reported separately.
         front = self.get_range(scan_msg, 0.0)
-        doorway = (
-            b > desired + self.get_parameter('doorway_side_jump').value
-            and front > self.get_parameter('corner_front_distance').value
-        )
+        wall_ended = b > desired + self.get_parameter('doorway_side_jump').value
+        open_ahead = front > self.get_parameter('corner_front_distance').value
 
-        return desired - dist_ahead, doorway
+        return desired - dist_ahead, wall_ended and open_ahead, wall_ended and not open_ahead
 
     def pid_control(self, error, now):
         # The same steering angle turns the car harder the faster it goes, so scale the
         # gains down above the speed they were tuned at.
-        scale = min(1.0, self.get_parameter('gain_ref_speed').value / max(self.speed, 1e-3))
+        scale = min(1.0, TUNED_SPEED / max(self.speed, 1e-3))
         kp = self.get_parameter('kp').value * scale
         ki = self.get_parameter('ki').value * scale
         kd = self.get_parameter('kd').value * scale
@@ -121,60 +127,63 @@ class WallFollow(Node):
 
         return kp * error + ki * self.integral + kd * derivative
 
-    def speed_limit(self, scan_msg, steering):
-        """Fastest safe speed right now, whatever the speed table asks for.
+    def choose_speed(self, scan_msg, steering, dt):
+        """The lab's speed table scaled to max_speed, kept within what the car can turn and
+        brake for."""
+        max_speed = self.get_parameter('max_speed').value
+        steering_deg = abs(math.degrees(steering))
+        if steering_deg < 10.0:
+            speed = max_speed
+        elif steering_deg < 20.0:
+            speed = max_speed * 2.0 / 3.0
+        else:
+            speed = max_speed / 3.0
 
-        Turning: a turn of radius r holds at most sqrt(max_lateral_accel * r) before the
-        car slides, and r = wheelbase / tan(steering).
-        Braking: with a wall d metres ahead, the car must still be able to slow to
-        corner_speed by corner_margin before it.
-        """
-        limit = math.inf
+        # A turn of radius r = wheelbase / tan(steering) holds at most sqrt(grip * r).
         if abs(steering) > 1e-3:
-            radius = self.get_parameter('wheelbase').value / math.tan(abs(steering))
-            limit = math.sqrt(self.get_parameter('max_lateral_accel').value * radius)
+            speed = min(speed, math.sqrt(LATERAL_ACCEL * WHEELBASE / math.tan(abs(steering))))
 
+        # Brake early enough to be down to CORNER_SPEED by CORNER_MARGIN before a wall ahead.
         ahead = min(self.get_range(scan_msg, math.radians(a)) for a in (-10.0, 0.0, 10.0))
-        room = max(0.0, ahead - self.get_parameter('corner_margin').value)
-        corner_speed = self.get_parameter('corner_speed').value
-        limit = min(limit, math.sqrt(corner_speed ** 2
-                                     + 2.0 * self.get_parameter('max_decel').value * room))
-        return limit
+        room = max(0.0, ahead - CORNER_MARGIN)
+        speed = min(speed, math.sqrt(CORNER_SPEED ** 2 + 2.0 * BRAKE_DECEL * room))
+
+        # Gain speed gradually at high speed; slowing down is never delayed.
+        if speed > max(self.speed, SMOOTH_ABOVE) and dt > 0.0:
+            speed = min(speed, max(self.speed, SMOOTH_ABOVE) + SPEED_UP * dt)
+        return speed
 
     def scan_callback(self, scan_msg):
         now = scan_msg.header.stamp.sec + scan_msg.header.stamp.nanosec * 1e-9
-        error, doorway = self.get_error(scan_msg)
+        dt = 0.0 if self.prev_time is None else now - self.prev_time
+        error, doorway, corner = self.get_error(scan_msg)
+        sign = 1.0 if self.get_parameter('side').value == 'left' else -1.0
+        max_steering = self.get_parameter('max_steering').value
 
-        if doorway:
-            # Drive straight past the doorway and don't let it wind up the PID.
-            steering = 0.0
+        if doorway or corner:
+            # Doorway: drive straight past it. Corner: turn around it, toward the wall side.
+            # Either way, don't let the jump in the readings wind up the PID.
+            steering = sign * max_steering if corner else 0.0
             self.integral = 0.0
             self.prev_error = 0.0
             self.prev_time = now
         else:
             u = self.pid_control(error, now)
             # Too close to the left wall (positive error) means steer right (negative angle).
-            sign = 1.0 if self.get_parameter('side').value == 'left' else -1.0
             steering = -sign * u
 
-        max_steering = self.get_parameter('max_steering').value
         steering = max(-max_steering, min(max_steering, steering))
 
-        steering_deg = abs(math.degrees(steering))
-        if steering_deg < 10.0:
-            speed = self.get_parameter('straight_speed').value
-        elif steering_deg < 20.0:
-            speed = self.get_parameter('medium_speed').value
-        else:
-            speed = self.get_parameter('slow_speed').value
+        if self.speed > SMOOTH_ABOVE:
+            steering = STEERING_BLEND * steering + (1.0 - STEERING_BLEND) * self.steering
+        self.steering = steering
 
-        speed = min(speed, self.speed_limit(scan_msg, steering))
-        self.speed = speed
+        self.speed = self.choose_speed(scan_msg, steering, dt)
 
         drive_msg = AckermannDriveStamped()
         drive_msg.header.stamp = scan_msg.header.stamp
         drive_msg.drive.steering_angle = steering
-        drive_msg.drive.speed = speed
+        drive_msg.drive.speed = self.speed
         self.drive_publisher.publish(drive_msg)
 
 
