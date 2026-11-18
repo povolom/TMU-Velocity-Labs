@@ -15,8 +15,13 @@
         "${workspaceFolder}/lab4/gap_follow",
         "${workspaceFolder}/sim/lab_sim"
     ],
+    // Testing panel (the flask icon): run buttons for every lab test. ros.env gives the tests
+    // ROS 2's environment, as sourcing setup.bash does in a terminal.
     "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.cwd": "${workspaceFolder}",
     "python.testing.pytestArgs": ["lab3/wall_follow/test", "lab4/gap_follow/test"],
+    "python.envFile": "${workspaceFolder}/.vscode/ros.env",
 
     "files.exclude": {
         "**/__pycache__": true,

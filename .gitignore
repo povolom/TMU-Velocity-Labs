@@ -16,6 +16,7 @@ rosbag2_*/
 .vscode/*
 !.vscode/tasks.json
 !.vscode/settings.json
+!.vscode/ros.env
 .idea/
 .DS_Store
 CLAUDE.md
