@@ -8,6 +8,7 @@ lab_sim's steady_clock, so WSL clock jumps don't freeze the simulator.
 """
 
 import os
+import signal
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -38,7 +39,37 @@ def _other_simulator_running():
     return False
 
 
+# Lab nodes that drive the car. One left over from an earlier run (its launch gone) would
+# keep sending commands and fight the new run's driver.
+DRIVERS = (b'/lib/gap_follow/', b'/lib/wall_follow/', b'/lib/safety_node/', b'/lib/lab_sim/')
+
+
+def _stop_leftover_drivers():
+    """Stop lab nodes on this ROS domain that no running launch or ros2 run owns."""
+    domain = os.environ.get('ROS_DOMAIN_ID', '0')
+    for pid in filter(str.isdigit, os.listdir('/proc')):
+        try:
+            with open(f'/proc/{pid}/cmdline', 'rb') as f:
+                cmdline = f.read()
+            if not any(d in cmdline for d in DRIVERS):
+                continue
+            with open(f'/proc/{pid}/environ', 'rb') as f:
+                env = dict(v.split(b'=', 1) for v in f.read().split(b'\0') if b'=' in v)
+            if env.get(b'ROS_DOMAIN_ID', b'0').decode() != domain:
+                continue
+            with open(f'/proc/{pid}/stat', 'rb') as f:
+                parent = f.read().rsplit(b')', 1)[1].split()[1].decode()
+            with open(f'/proc/{parent}/cmdline', 'rb') as f:
+                if b'ros2' in f.read():
+                    continue        # still part of a running launch
+        except (OSError, IndexError):
+            continue
+        print(f'[lab_sim] stopping a lab node left over from an earlier run (pid {pid})')
+        os.kill(int(pid), signal.SIGKILL)
+
+
 def _nodes(context):
+    _stop_leftover_drivers()
     if _other_simulator_running():
         raise RuntimeError(
             'Another simulator is already running. Stop it first (trash-can icon on its '

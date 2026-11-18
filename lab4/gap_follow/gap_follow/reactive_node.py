@@ -274,7 +274,10 @@ def main(args=None):
 
     node = ReactiveFollowGap()
     try:
-        rclpy.spin(node)
+        # Wake every 0.1 s even when no scans come (the simulator may already have
+        # stopped), so Ctrl+C is always noticed and the node never hangs on.
+        while rclpy.ok():
+            rclpy.spin_once(node, timeout_sec=0.1)
     except KeyboardInterrupt:
         pass
     finally:

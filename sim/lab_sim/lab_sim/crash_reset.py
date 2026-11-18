@@ -6,6 +6,7 @@ same by sending the start pose on /initialpose, like RViz's 2D Pose Estimate too
 """
 
 import math
+import signal
 
 import rclpy
 from rclpy.executors import ExternalShutdownException
@@ -62,11 +63,20 @@ class CrashReset(Node):
         self.prev_yaw = None
 
 
+def _interrupt(signum, frame):
+    raise KeyboardInterrupt
+
+
 def main(args=None):
     rclpy.init(args=args, signal_handler_options=SignalHandlerOptions.NO)
+    # Stop on Ctrl+C and termination even when started where Ctrl+C is ignored by default.
+    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, _interrupt)
     node = CrashReset()
     try:
-        rclpy.spin(node)
+        # Wake every 0.1 s even when nothing arrives, so Ctrl+C is always noticed.
+        while rclpy.ok():
+            rclpy.spin_once(node, timeout_sec=0.1)
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
     node.destroy_node()
