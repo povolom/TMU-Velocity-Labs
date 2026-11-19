@@ -14,6 +14,9 @@ class SafetyNode(Node):
         super().__init__('safety_node')
 
         self.declare_parameter('ttc_threshold', 1.0)
+        # Once braking, keep braking while something is this close ahead. Otherwise the
+        # car stops, iTTC becomes infinite, braking lets go and the driver creeps it forward.
+        self.declare_parameter('hold_distance', 1.0)
 
         self.speed = 0.0
         self.braking = False
@@ -45,6 +48,7 @@ class SafetyNode(Node):
         threshold = self.get_parameter('ttc_threshold').value
 
         min_ttc = math.inf
+        min_ahead = math.inf
 
         for i, distance in enumerate(scan_msg.ranges):
 
@@ -59,6 +63,9 @@ class SafetyNode(Node):
 
             angle = scan_msg.angle_min + i * scan_msg.angle_increment
 
+            if abs(angle) < math.radians(15.0):
+                min_ahead = min(min_ahead, distance)
+
             closing_speed = self.speed * math.cos(angle)
 
             if closing_speed <= 0.0:
@@ -69,7 +76,9 @@ class SafetyNode(Node):
             if ttc < min_ttc:
                 min_ttc = ttc
 
-        if min_ttc < threshold:
+        holding = self.braking and min_ahead < self.get_parameter('hold_distance').value
+
+        if min_ttc < threshold or holding:
             brake_msg = AckermannDriveStamped()
 
             brake_msg.header.stamp = self.get_clock().now().to_msg()

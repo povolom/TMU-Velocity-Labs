@@ -1,0 +1,30 @@
+{
+    // Run and Debug panel (Ctrl+Shift+D): pick one, then press the green play button.
+    // Breakpoints in the lab code stop the tests there. ros.env gives them ROS 2's
+    // environment, as sourcing setup.bash does in a terminal.
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Lab 4 - Test all",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-v", "lab4/gap_follow/test"],
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/.vscode/ros.env",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Lab 4 - Test follow the gap",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-v", "lab4/gap_follow/test/test_reactive_node.py"],
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/.vscode/ros.env",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}
