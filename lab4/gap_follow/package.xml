@@ -2,7 +2,7 @@
 <package format="3">
   <name>gap_follow</name>
   <version>0.1.0</version>
-  <description>RoboRacer Lab 4: reactive follow the gap from LaserScan data.</description>
+  <description>RoboRacer Lab 4: reactive follow the gap from LaserScan data, and a track-aware obstacle avoidance node for maps with obstacles.</description>
   <maintainer email="povolo.ma@gmail.com">Marcantonio Povolo</maintainer>
   <license>MIT</license>
 
@@ -11,8 +11,14 @@
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
   <depend>ackermann_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
 
+  <exec_depend>ament_index_python</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-scipy</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>python3-pil</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>lab_sim</exec_depend>

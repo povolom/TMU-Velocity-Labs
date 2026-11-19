@@ -10,9 +10,21 @@
 |---|---|
 | [![Lab 4 at normal speed (click to play)](media/lab4_follow_the_gap_normal.png)](media/lab4_follow_the_gap_normal.mp4) | [![Lab 4 at max_speed 10 (click to play)](media/lab4_follow_the_gap_fast.png)](media/lab4_follow_the_gap_fast.mp4) |
 
-**levine_obs**: starting on the east hallway heading north, the car clears 3 of the 4 corners (through the triangles, past the L-shaped dead-end pocket and the first box) and then clips a box in the slalom on the south hallway, where the gap between two boxes is about 0.45 m for a 0.31 m wide car. A full clean lap of this map is still to do.
+**levine_obs** (13 obstacles, gaps as tight as 0.44 m for a 0.31 m wide car): the `obstacle_avoidance` node drives clean laps from the official start, about 35 s a lap. Tested over 2 laps at `max_speed` 2, 3, 5 and 8 with up to 30 ms of extra command lag, and through the launch file in the ROS simulator (35.0 s and 34.6 s).
 
-[![Lab 4 on levine_obs (click to play)](media/lab4_follow_the_gap_obstacles.png)](media/lab4_follow_the_gap_obstacles.mp4)
+[![Lab 4 obstacle_avoidance on levine_obs (click to play)](media/lab4_obstacle_avoidance.png)](media/lab4_obstacle_avoidance.mp4)
+
+How it gets round, mixing the ForzaETH and UNICORN racing stacks' approach:
+
+- **Racing line planned offline** from the map (`ros2 run gap_follow make_racing_line levine_obs`, saved as [config/levine_obs_line.csv](gap_follow/config/levine_obs_line.csv)). It searches every line through the whole lap for the one that keeps the car's real footprint (the simulator's 0.33 × 0.31 m box) at least 5 cm clear, never turns tighter than 1/m, and has the most room.
+- **Follow the line directly** while the LiDAR shows it clear, steering back onto it when the car drifts. A route replanned from wherever the car is would keep accepting each small drift, and in the tight south-east corner a few cm too wide left no way round: that was why it used to stop there.
+- **Route round anything not on the map** with the local planner, then rejoin the line.
+- **Steering that accounts for lag**: it reads the line's bend where the car will be once the command takes effect (the node measures its own lag), and compares the line's direction with the way the LiDAR point is actually moving.
+- **Speed profile** in the style of ForzaETH's MAP controller: slow where there is little room or a sharp bend, fast in open hallway, and every command is checked by simulating the car before it is sent.
+
+The earlier `reactive_node` (follow the gap) run on this map, for comparison: it clips a box in the south hallway slalom.
+
+[![Lab 4 follow the gap on levine_obs (click to play)](media/lab4_follow_the_gap_obstacles.png)](media/lab4_follow_the_gap_obstacles.mp4)
 
 *Click a picture to play its video: screen recordings of RViz while the car drives in the RoboRacer simulator.*
 
