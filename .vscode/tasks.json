@@ -82,7 +82,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Lab 4 - Follow the gap, obstacles (1.5 m/s)",
+            "label": "Lab 4 - Obstacle avoidance (levine_obs)",
             "type": "shell",
             "command": "source ~/velocity_ws/install/setup.bash && ros2 launch gap_follow levine_obs_launch.py sim:=true",
             "dependsOn": "Build labs",

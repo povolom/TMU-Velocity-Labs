@@ -17,7 +17,7 @@ These are Labs 1 to 4 of the [RoboRacer course](https://f1tenth-coursekit.readth
 | Lab 1: Introduction to ROS 2 | ROS 2 basics: workspaces, packages and nodes that publish and subscribe to messages | [lab1/](lab1/) |
 | Lab 2: Automatic Emergency Braking | A safety node that stops the car before a collision, using Time to Collision calculated from the LaserScan data in the RoboRacer simulator | [lab2/](lab2/) |
 | Lab 3: Wall Following | A PID controller that holds a set distance from the inner wall to drive laps | [lab3/](lab3/) |
-| Lab 4: Follow the Gap | A reactive planner that drives toward the free space it fits through, on an empty track and one full of obstacles | [lab4/](lab4/) |
+| Lab 4: Follow the Gap | A reactive planner that drives toward the free space it fits through on an empty track, and an obstacle-avoidance node with a racing line for a track full of obstacles | [lab4/](lab4/) |
 
 [![Lab 4 follow the gap at max_speed 10 (click to play the video)](lab4/media/lab4_follow_the_gap_fast.png)](lab4/media/lab4_follow_the_gap_fast.mp4)
 
@@ -55,9 +55,9 @@ ros2 run safety_node safety_node --ros-args -p use_sim_time:=true
 ros2 run teleop_twist_keyboard teleop_twist_keyboard        #   drive with the keyboard
 ros2 launch wall_follow wall_follow_launch.py sim:=true     # Lab 3: simulator + RViz + wall follower
 ros2 launch gap_follow levine_blocked_launch.py sim:=true   # Lab 4: simulator + RViz + follow the gap
-ros2 launch gap_follow levine_obs_launch.py sim:=true       # Lab 4 on the obstacle map
+ros2 launch gap_follow levine_obs_launch.py sim:=true       # Lab 4 on the obstacle map: obstacle avoidance
 ```
 
-Add `max_speed:=10.0` to a Lab 3 or Lab 4 launch to run it fast. Leave out `sim:=true` to start only the lab's node (on the car, or with a simulator that's already running).
+Add `max_speed:=10.0` to the Lab 3 launch or the Lab 4 `levine_blocked` launch to run it fast. Leave out `sim:=true` to start only the lab's node (on the car, or with a simulator that's already running).
 
 The simulator runs on sim time from `lab_sim`'s steady clock, because WSL's system clock can jump by minutes and freeze ROS timers. If the car crashes, it is put back on the start line (`reset_on_crash:=false` turns that off).
